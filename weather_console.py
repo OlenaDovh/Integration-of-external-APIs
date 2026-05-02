@@ -15,7 +15,17 @@ logging.basicConfig(
     encoding="utf-8"
 )
 
-def get_weather(city):
+
+def get_weather(city: str) -> str:
+    """Отримує поточну погоду для вказаного міста.
+
+    Args:
+        city: Назва міста.
+
+    Returns:
+        Рядок із погодою або повідомленням про помилку.
+    """
+
     start_time = time.time()
 
     url = "https://api.openweathermap.org/data/2.5/weather"
@@ -53,7 +63,14 @@ def get_weather(city):
         )
         return "Сталася помилка під час підключення до API."
 
-def main():
+
+def main() -> None:
+    """Запускає консольну програму для отримання погоди.
+
+    Returns:
+        None.
+    """
+
     if not OPENWEATHER_API_KEY:
         print("Помилка: OPENWEATHER_API_KEY не знайдено у файлі .env")
         return
@@ -67,6 +84,7 @@ def main():
 
         result = get_weather(city)
         print(result)
+
 
 if __name__ == "__main__":
     main()

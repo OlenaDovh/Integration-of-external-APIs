@@ -29,7 +29,16 @@ main_keyboard = ReplyKeyboardMarkup(
 )
 
 
-def get_weather(city):
+def get_weather(city: str) -> str:
+    """Отримує поточну погоду для вказаного міста.
+
+    Args:
+        city: Назва міста.
+
+    Returns:
+        Рядок із інформацією про погоду або повідомлення про помилку.
+    """
+
     start_time = time.time()
 
     url = "https://api.openweathermap.org/data/2.5/weather"
@@ -84,7 +93,16 @@ def get_weather(city):
         return "Сталася помилка під час підключення до API."
 
 
-def get_forecast(city):
+def get_forecast(city: str) -> str:
+    """Отримує прогноз погоди на 5 днів для міста.
+
+    Args:
+        city: Назва міста.
+
+    Returns:
+        Рядок із прогнозом або повідомлення про помилку.
+    """
+
     start_time = time.time()
 
     url = "https://api.openweathermap.org/data/2.5/forecast"
@@ -150,105 +168,18 @@ def get_forecast(city):
         return "Сталася помилка під час підключення до API."
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Обробляє команду /start.
+
+    Args:
+        update: Об'єкт оновлення Telegram.
+        context: Контекст виконання.
+
+    Returns:
+        None.
+    """
+
     await update.message.reply_text(
         "Привіт! Обери дію:",
         reply_markup=main_keyboard
     )
-
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = (
-        "🤖 Доступні можливості бота:\n\n"
-        "📍 Прогноз на сьогодні - поточна погода\n"
-        "📅 Прогноз на 5 днів - прогноз на кілька днів\n\n"
-        "⚙️ Команди:\n"
-        "/start - запуск бота\n"
-        "/help - довідка\n"
-        "/weather - прогноз на сьогодні\n"
-        "/forecast - прогноз на 5 днів\n\n"
-        "⬇️ Або просто натисни кнопку нижче"
-    )
-
-    await update.message.reply_text(text, reply_markup=main_keyboard)
-
-
-async def weather_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Вкажіть місто:")
-    return WEATHER_CITY
-
-
-async def forecast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Вкажіть місто для отримання прогнозу:")
-    return FORECAST_CITY
-
-
-async def weather_city_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    city = update.message.text.strip()
-    result = get_weather(city)
-
-    await update.message.reply_text(result)
-    await update.message.reply_text(
-        "Хочете обрати прогноз на сьогодні чи наступні кілька днів? Натисніть відповідну кнопку на клавіатурі.",
-        reply_markup=main_keyboard)
-
-    return ConversationHandler.END
-
-
-async def forecast_city_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    city = update.message.text.strip()
-    result = get_forecast(city)
-
-    await update.message.reply_text(result)
-    await update.message.reply_text(
-        "Хочете обрати прогноз на сьогодні чи наступні кілька днів? Натисніть відповідну кнопку на клавіатурі.",
-        reply_markup=main_keyboard)
-
-    return ConversationHandler.END
-
-
-async def choose_city_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Вкажіть місто:")
-    return WEATHER_CITY
-
-
-async def forecast_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Вкажіть місто для прогнозу:")
-    return FORECAST_CITY
-
-
-async def fallback_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Хочете обрати прогноз на сьогодні чи наступні кілька днів? Натисніть відповідну кнопку на клавіатурі.",
-        reply_markup=main_keyboard)
-
-
-def main():
-    application = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
-
-    handler = ConversationHandler(
-        entry_points=[
-            CommandHandler("weather", weather_command),
-            CommandHandler("forecast", forecast_command),
-            MessageHandler(filters.Regex("^Прогноз на сьогодні$"), choose_city_button),
-            MessageHandler(filters.Regex("^Прогноз на 5 днів$"), forecast_button)
-        ],
-        states={
-            WEATHER_CITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, weather_city_handler)],
-            FORECAST_CITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, forecast_city_handler)]
-        },
-        fallbacks=[]
-    )
-
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(handler)
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, fallback_text))
-
-    application.run_polling()
-
-
-if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    main()
